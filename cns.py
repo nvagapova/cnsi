@@ -27,7 +27,7 @@ p.add_argument("-norm_w", action='store_true') # Нормализация вес
 p.add_argument("-norm_g", action='store_true') # Нормализация градиентов
 p.add_argument("-tv_w", type=float, default=1e-5) # Вес сглаживания
 p.add_argument("-iters", type=int, default=50) # Количество итераций
-p.add_argument("-init", choices=['random', 'image'], default='random') # Инициализация (случайная или изображение)
+p.add_argument("-init", choices=['random', 'image'], default='image') # Инициализация (случайная или изображение)
 p.add_argument("-init_img", default=None) # Изображение инициализации
 p.add_argument("-opt", choices=['lbfgs', 'adam'], default='lbfgs') # Оптимизатор
 p.add_argument("-lr", type=float, default=1e0) # Шаг обучения
