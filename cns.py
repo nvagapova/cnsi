@@ -8,60 +8,13 @@ import streamlit as st
 
 from PIL import Image
 
-# from ModelLoader import loadModel
-# from CaffeLoader import loadCaffemodel, ModelParallel
-
-import argparse
-p = argparse.ArgumentParser()
-# Базовые опции
-p.add_argument("-s_img", default='style') # Изображение стиля
-p.add_argument("-s_blend_w", default=None) # Смешивание весов стилей
-p.add_argument("-c_img", default='input/input.png') # Исходное изображение
-p.add_argument("-img_size", type=int, default=512) # Максимальные параметры (высота/ширина) сгенерированного изображения
-p.add_argument("-pu", default="c") # Процессор: Графический = 0, Центральный = c
-
-# Опции оптимизации
-p.add_argument("-cw", type=float, default=5e0) # Веса контента
-p.add_argument("-sw", type=float, default=1e3) # Веса стилей
-p.add_argument("-norm_w", action='store_true') # Нормализация весов
-p.add_argument("-norm_g", action='store_true') # Нормализация градиентов
-p.add_argument("-tv_w", type=float, default=1e-5) # Вес сглаживания
-p.add_argument("-iters", type=int, default=50) # Количество итераций
-p.add_argument("-init", choices=['random', 'image'], default='image') # Инициализация (случайная или изображение)
-p.add_argument("-init_img", default=None) # Изображение инициализации
-p.add_argument("-opt", choices=['lbfgs', 'adam'], default='lbfgs') # Оптимизатор
-p.add_argument("-lr", type=float, default=1e0) # Шаг обучения
-p.add_argument("-lbfgs_num_of_corr", type=int, default=100) # Количество корректировок оптимизатора L-BFGS
-
-# Опции вывода
-p.add_argument("-pt_iter", type=int, default=10) # Итерация на которой печатается прогресс
-p.add_argument("-sv_iter", type=int, default=25) # Итерация на которой просиходит вывод промежуточного результата
-p.add_argument("-out_img", default='output/ref1.png') # Название и путь сохранения результата
-
-# Другие опции
-p.add_argument("-s_scl", type=float, default=1.0) # Масштабирование стиля
-p.add_argument("-sv_clrs", type=int, choices=[0, 1], default=0) # Сохранение цветов исходного изображения
-p.add_argument("-pool", choices=['avg', 'max'], default='max') # Вид пулинга (средний или максимальный)
-p.add_argument("-f_mdl", type=str, default='models/nyud-fcn32s-color-heavy.pth') # Предобученная архитектура модели
-p.add_argument("-dis_check", action='store_true') # Отключить проверку
-p.add_argument("-engine", choices=['cudnn', 'mkl'], default='cudnn') # Движок
-p.add_argument("-autoconf", action='store_true') # Автоматическая настройка
-
-p.add_argument("-cl", default='relu1_1,relu2_1,relu3_1,relu4_1,relu5_1') # Слои исходного изображения
-p.add_argument("-sl", default='relu1_1,relu2_1,relu3_1,relu4_1,relu5_1') # Слои стиля
-
-# p.add_argument("-multidevice_strategy", default='4,7,29') #
-params = p.parse_args()
-
+s_blend_w = []  # Смешивание весов стилей
 
 Image.MAX_IMAGE_PIXELS = 1000000000  # Поддержка больших изображений
 
 
-# Сеть выполняет подвыборку входных данных и
-# использует ядро билинейной дискретизации для повышения точности прогнозирования в 32 раза.
-# Если размер изображения не соответствует коэффициенту 32, будет предсказан другой размер
 class fcn32s(nn.Module):
-    def __init__(self, features, num_classes=1000): 
+    def __init__(self, features, num_classes=1000):
         super(fcn32s, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
@@ -94,17 +47,14 @@ def createSeq(source_ls, pool):
 
 
 source_ls = {
-    # 'VGG-16p': [24, 22, 'Pool', 41, 51, 'Pool', 108, 89, 111, 'Pool', 184, 276, 228, 'Pool', 512, 512, 512, 'Pool'],
-    'VGG-16': [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 'Pool', 512, 512, 512, 'Pool', 512, 512, 512, 'Pool'],
-    # 'VGG-19': [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 256, 'Pool', 512, 512, 512, 512, 'Pool', 512, 512,
-    # 512, 512, 'Pool']
+    'VGG-16': [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 'Pool', 512, 512, 512, 'Pool', 512, 512, 512, 'Pool']
 }
 
 dict_vgg16 = {
-    'Conv': ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv4_1', 'conv4_2', 'conv4_3',
-          'conv5_1', 'conv5_2', 'conv5_3'],
-    'Relu': ['relu1_1', 'relu1_2', 'relu2_1', 'relu2_2', 'relu3_1', 'relu3_2', 'relu3_3', 'relu4_1', 'relu4_2', 'relu4_3',
-          'relu5_1', 'relu5_2', 'relu5_3'],
+    'Conv': ['conv1_1', 'conv1_2', 'conv2_1', 'conv2_2', 'conv3_1', 'conv3_2', 'conv3_3', 'conv4_1', 'conv4_2',
+             'conv4_3', 'conv5_1', 'conv5_2', 'conv5_3'],
+    'Relu': ['relu1_1', 'relu1_2', 'relu2_1', 'relu2_2', 'relu3_1', 'relu3_2', 'relu3_3', 'relu4_1', 'relu4_2',
+             'relu4_3', 'relu5_1', 'relu5_2', 'relu5_3'],
     'Pool': ['pool1', 'pool2', 'pool3', 'pool4', 'pool5']
 }
 
@@ -143,31 +93,36 @@ def loadModel(f_mdl, pool, use_gpu, dis_check):
     loadmodels_print(cnn, lsLayers)
     return cnn, lsLayers
 
+
 def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
-    # st.write(s_scl)
+    cw = 5e0  # Веса контента
     dtype, backward_dev = gpuConf()
-    # multidevice,
+    pu = 'c'  # Процессор: Графический = 0, Центральный = c
+    pool = 'max'  # Вид пулинга (средний или максимальный)
+    f_mdl = 'models/nyud-fcn32s-color-heavy.pth'  # Предобученная архитектура модели
+    dis_check = True  # Отключить проверку
+    cnn, lsLayers = loadModel(f_mdl, pool, pu, dis_check)
+    img_size = 512  # Максимальные параметры (высота/ширина) сгенерированного изображения
 
-    cnn, lsLayers = loadModel(params.f_mdl, params.pool, params.pu, params.dis_check)
-
-    c_img = preproc(c_img, params.img_size).type(dtype)
+    c_img = preproc(c_img, img_size).type(dtype)
     s_img_input = s_img.split(',')
     s_img_ls, extension = [], [".jpg", ".jpeg", ".png"]
     for image in s_img_input:
         if os.path.isdir(image):
-            images = (image + "/" + file for file in os.listdir(image) if os.path.splitext(file)[1].lower() in extension)
+            images = (image + "/" + file for file in os.listdir(image) if
+                      os.path.splitext(file)[1].lower() in extension)
             s_img_ls.extend(images)
         else:
             s_img_ls.append(image)
     s_imgs_caf = []
     for image in s_img_ls:
-        s_size = int(params.img_size * s_scl)
+        s_size = int(img_size * s_scl)
         img_caf = preproc(image, s_size).type(dtype)
         s_imgs_caf.append(img_caf)
-
-    if params.init_img is not None:
+    init_img = None  # Изображение инициализации
+    if init_img is not None:
         img_size = (c_img.size(2), c_img.size(3))
-        init_img = preproc(params.init_img, img_size).type(dtype)
+        init_img = preproc(init_img, img_size).type(dtype)
 
     # Обработка смешанных весов для нескольких стилей
     if s_blend_w == []:
@@ -187,21 +142,23 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
         sum_s_blend = float(sum_s_blend) + s_blend_w[i]
     for i, bws in enumerate(s_blend_w):
         s_blend_w[i] = float(s_blend_w[i]) / float(sum_s_blend)
-
-    cl = params.cl.split(',')
-    sl = params.sl.split(',')
+    cl = 'relu1_1,relu2_1,relu3_1,relu4_1,relu5_1'  # Слои исходного изображения
+    cl = cl.split(',')
+    sl = 'relu1_1,relu2_1,relu3_1,relu4_1,relu5_1'  # Слои стиля
+    sl = sl.split(',')
 
     # Настройка сети, подключение модулей потери стиля и содержимого
     cnn = copy.deepcopy(cnn)
     c_losses, s_losses, tv_losses = [], [], []
-    next_c_idx, next_s_idx = 1, 1
+    next_c_idx, next_s_idx = 1, 1  # Индексы карт признаков контента и стиля
     net = nn.Sequential()
     c, r = 0, 0
-    if params.tv_w > 0:
-        tv_mod = LossTV(params.tv_w).type(dtype)
+    tv_w = 1e-5  # Вес сглаживания
+    if tv_w > 0:
+        tv_mod = LossTV(tv_w).type(dtype)
         net.add_module(str(len(net)), tv_mod)
         tv_losses.append(tv_mod)
-
+    norm_g = True  # Нормализация градиентов
     for i, layer in enumerate(list(cnn), 1):
         if next_c_idx <= len(cl) or next_s_idx <= len(sl):
             if isinstance(layer, nn.Conv2d):
@@ -209,13 +166,13 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
 
                 if lsLayers['Conv'][c] in cl:
                     print("Настройка слоя содержимого " + str(i) + ": " + str(lsLayers['Conv'][c]))
-                    loss_module = LossContent(params.cw, params.norm_g)
+                    loss_module = LossContent(cw, norm_g)
                     net.add_module(str(len(net)), loss_module)
                     c_losses.append(loss_module)
 
                 if lsLayers['Conv'][c] in sl:
                     print("Настройка слоя стиля " + str(i) + ": " + str(lsLayers['Conv'][c]))
-                    loss_module = LossStyle(sw, params.norm_g)
+                    loss_module = LossStyle(sw, norm_g)
                     net.add_module(str(len(net)), loss_module)
                     s_losses.append(loss_module)
                 c += 1
@@ -225,14 +182,14 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
 
                 if lsLayers['Relu'][r] in cl:
                     print("Настройка слоя содержимого " + str(i) + ": " + str(lsLayers['Relu'][r]))
-                    loss_module = LossContent(params.cw, params.norm_g)
+                    loss_module = LossContent(cw, norm_g)
                     net.add_module(str(len(net)), loss_module)
                     c_losses.append(loss_module)
                     next_c_idx += 1
 
                 if lsLayers['Relu'][r] in sl:
                     print("Настройка слоя стиля " + str(i) + ": " + str(lsLayers['Relu'][r]))
-                    loss_module = LossStyle(sw, params.norm_g)
+                    loss_module = LossStyle(sw, norm_g)
                     net.add_module(str(len(net)), loss_module)
                     s_losses.append(loss_module)
                     next_s_idx += 1
@@ -240,9 +197,6 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
 
             if isinstance(layer, nn.MaxPool2d) or isinstance(layer, nn.AvgPool2d):
                 net.add_module(str(len(net)), layer)
-
-    # if multidevice:
-    #    net = setup_multi_device(net)
 
     # Фиксация содержания
     for i in c_losses:
@@ -262,35 +216,37 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
             j.bw = s_blend_w[i]
         net(s_imgs_caf[i])
 
-    # Установить все модули потерь к loss mode 
+    # Установить все модули потерь к loss mode
     for i in c_losses:
         i.mode = 'loss'
     for i in s_losses:
         i.mode = 'loss'
-
-    # Нормализация весов содержания и стиля 
-    if params.norm_w:
-        norm_w(c_losses, s_losses)
+    norm_w = True  # Нормализация весов
+    # Нормализация весов содержания и стиля
+    if norm_w is True:
+        func_norm_w(c_losses, s_losses)
 
     # Заморозка сети, для предотвращения лишних вычислений градиента
     for param in net.parameters():
         param.requires_grad = False
-
+    init = 'image'  # Инициализация (случайная или изображение)
     # Инициализация изображения
-    if params.init == 'random':
-        B, C, H, W = c_img.size()
-        img = torch.randn(C, H, W).mul(0.001).unsqueeze(0).type(dtype)
-    elif params.init == 'image':
-        if params.init_img is not None:
+    if init == 'random':
+        b, c, h, w = c_img.size()
+        img = torch.randn(c, h, w).mul(0.001).unsqueeze(0).type(dtype)
+    elif init == 'image':
+        if init_img is not None:
             img = init_img.clone()
         else:
             img = c_img.clone()
     img = nn.Parameter(img)
     slot1 = st.empty()
+
     def ptProb(t, loss):
         c_loss = 0
         s_loss = 0
-        if params.pt_iter > 0 and t % params.pt_iter == 0:
+        pt_iter = 1  # Итерация на которой печатается прогресс
+        if pt_iter > 0 and t % pt_iter == 0:
             print("Итерация " + str(t) + " / " + str(iters))
             slot1.write("Итерация " + str(t) + " / " + str(iters))
             for i, loss_module in enumerate(c_losses):
@@ -303,8 +259,10 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
 
     slot2 = st.empty()
     slot3 = st.empty()
+
     def svProb(t):
-        sv_must = params.sv_iter > 0 and t % params.sv_iter == 0
+        sv_iter = 2  # Итерация на которой просиходит вывод промежуточного результата
+        sv_must = sv_iter > 0 and t % sv_iter == 0
         sv_must = sv_must or t == iters
         if sv_must:
             name_out, ext_out = os.path.splitext(out_img)
@@ -339,12 +297,13 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
         opt.zero_grad()
         net(img)
         loss = 0
+        tv_w = 1e-5  # Вес сглаживания
 
         for mod in c_losses:
             loss += mod.loss.to(backward_dev)
         for mod in s_losses:
             loss += mod.loss.to(backward_dev)
-        if params.tv_w > 0:
+        if tv_w > 0:
             for mod in tv_losses:
                 loss += mod.loss.to(backward_dev)
 
@@ -364,69 +323,46 @@ def main(c_img, s_img, out_img, sv_clrs, s_scl, s_blend_w, iters, sw):
 
 # Конфигурация оптимизатора
 def optimConf(img, iters):
-    if params.opt == 'lbfgs':
+    opt = 'lbfgs'  # Оптимизатор
+    lr = 1e0  # Шаг обучения
+    lbfgs_num_of_corr = 100  # Количество корректировок оптимизатора L-BFGS
+    if opt == 'lbfgs':
         print("Оптимизация запущена с оптимизатором L-BFGS")
         optim_state = {
             'max_iter': iters,
             'tolerance_change': -1,
             'tolerance_grad': -1,
         }
-        if params.lbfgs_num_of_corr != 100:
-            optim_state['history_size'] = params.lbfgs_num_of_corr
+        if lbfgs_num_of_corr != 100:
+            optim_state['history_size'] = lbfgs_num_of_corr
         opt = optim.LBFGS([img], **optim_state)
         loopVal = 1
-    elif params.opt == 'adam':
+    elif opt == 'adam':
         print("Оптимизация запущена с оптимизатором ADAM")
-        opt = optim.Adam([img], lr=params.lr)
+        opt = optim.Adam([img], lr=lr)
         loopVal = iters - 1
     return opt, loopVal
 
 
 def gpuConf():
     def setup_cuda():
-        if 'cudnn' in params.engine:
+        engine = 'cudnn'  # Движок
+        autoconf = True  # Автоматическая настройка
+        if 'cudnn' in engine:
             torch.backends.cudnn.enabled = True
-            if params.autoconf:
+            if autoconf:
                 torch.backends.cudnn.benchmark = True
         else:
             torch.backends.cudnn.enabled = False
 
-    # def setup_cpu():
-    #     if 'mkl' in params.engine and 'mkldnn' not in params.engine:
-    #         torch.backends.mkl.enabled = True
-    #     elif 'mkldnn' in params.engine:
-    #         raise ValueError("MKL-DNN еще не поддерживается.")
-    #     elif 'openmp' in params.engine:
-    #         torch.backends.openmp.enabled = True
-
-    # multidevice = False
-    # if "," in str(params.pu):
-    #    devices = params.pu.split(',')
-    #    multidevice = True
-#
-    #    if 'c' in str(devices[0]).lower():
-    #        backward_dev = "cpu"
-    #        setup_cuda(), setup_cpu()
-    #    else:
-    #        backward_dev = "cuda:" + devices[0]
-    #        setup_cuda()
-    #    dtype = torch.FloatTensor
-
-    if "c" not in str(params.pu).lower():
+    pu = 'c'  # Процессор: Графический = 0, Центральный = c
+    if "c" not in str(pu).lower():
         setup_cuda()
-        dtype, backward_dev = torch.cuda.FloatTensor, "cuda:" + str(params.pu)
+        dtype, backward_dev = torch.cuda.FloatTensor, "cuda:" + str(pu)
     else:
         # setup_cpu()
         dtype, backward_dev = torch.FloatTensor, "cpu"
     return dtype, backward_dev  # , multidevice
-
-
-# def setup_multi_device(net):
-#    assert len(params.pu.split(',')) - 1 == len(params.multidevice_strategy.split(',')), \
-#      "The number of -multidevice_strategy layer indices minus 1, must be equal to the number of -pu devices."
-#
-#    new_net = ModelParallel(net, params.pu, params.multidevice_strategy)
-#    return new_net
 
 
 # Предобработка изображения перед передачей его в модель
@@ -457,41 +393,14 @@ def unproc(output_tensor):
 # Объединение канала сгенерированного изображения и каналов UV/CbCr изображения содержимого,
 # чтобы стилизовать изображение с сохранением цвета.
 def sv_clr(content, generated):
-   c_channels = list(content.convert('YCbCr').split())
-   gen_channels = list(generated.convert('YCbCr').split())
-   c_channels[0] = gen_channels[0]
-   return Image.merge('YCbCr', c_channels).convert('RGB')
-
-
-# def print_torch(net, multidevice):
-#    if multidevice:
-#        return
-#    simplelist = ""
-#    for i, layer in enumerate(net, 1):
-#        simplelist = simplelist + "(" + str(i) + ") -> "
-#    print("nn.Sequential ( \n  [input -> " + simplelist + "output]")
-#
-#    def strip(x):
-#        return str(x).replace(", ",',').replace("(",'').replace(")",'') #+ ", "
-#    def n():
-#        return "  (" + str(i) + "): " + "nn." + str(l).split("(", 1)[0]
-#
-#    for i, l in enumerate(net, 1):
-#         if "2d" in str(l):
-#             ks, st, pd = strip(l.kernel_size), strip(l.stride), strip#(l.padding)
-#             if "Conv2d" in str(l):
-#                 ch = str(l.in_channels) + " -> " + str(l.out_channels)
-#                 print(n() + "(" + ch + ", " + (ks).replace(",",'x', 1) #+ st + pd.replace(", ",')'))
-#             elif "Pool2d" in str(l):
-#                 st = st.replace("  ",' ') + st.replace(", ",')')
-#                 print(n() + "(" + ((ks).replace(",",'x' + ks, 1) + st#).replace(", ",','))
-#         else:
-#             print(n())
-#    print(")")
+    c_channels = list(content.convert('YCbCr').split())
+    gen_channels = list(generated.convert('YCbCr').split())
+    c_channels[0] = gen_channels[0]
+    return Image.merge('YCbCr', c_channels).convert('RGB')
 
 
 # Деление весов на размер канала
-def norm_w(c_losses, s_losses):
+def func_norm_w(c_losses, s_losses):
     for n, i in enumerate(c_losses):
         i.strength = i.strength / max(i.target.size())
     for n, i in enumerate(s_losses):
@@ -536,9 +445,8 @@ class LossContent(nn.Module):
 class GramMtx(nn.Module):
 
     def forward(self, input):
-        B, C, H, W = input.size() # B - это количество изображений в пакете, C - количество цветовых каналов,
-                                  # H - высота W - ширина
-        x_flat = input.view(C, H * W)
+        b, c, h, w = input.size()  # B - кол-во изображений в пакете, C - кол-во цветовых каналов, H - высота W - ширина
+        x_flat = input.view(c, h * w)
         return torch.mm(x_flat, x_flat.t())
 
 

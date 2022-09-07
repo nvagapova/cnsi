@@ -1,3 +1,4 @@
+#!g1.1
 from collections import namedtuple
 import torch.nn as nn
 from torchvision import models
