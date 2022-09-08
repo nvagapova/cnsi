@@ -59,19 +59,19 @@ with st.sidebar:
         st.image(image, width=300)
 
     st.title('Стиль')
-    #st.write('Загрузите один или несколько стилей:')
+    st.write('Загрузите один или несколько стилей:')
     s_option = st.selectbox('Загрузите один или несколько стилей', ('Upload_styles', 'Choose_model'))
     if s_option == 'Upload_styles':
         upload_s_image = st.file_uploader("Загрузите стилевые изображения", type=["png", "jpg", "jpeg"],
                                           accept_multiple_files=True)
         if upload_s_image:
             s_images = upload_s_image
-    #elif s_option == 'Choose_model':
-    #    choose_model = st.selectbox("Выберите модель",
-    #                                ('BWScream',
-    #                                 'Pixel_Waterfall'))
-    #    if choose_model:
-    #        choose = choose_model
+    elif s_option == 'Choose_model':
+        choose_model = st.selectbox("Выберите модель",
+                                    ('BWScream',
+                                     'Pixel_Waterfall'))
+        if choose_model:
+            choose = choose_model
 
     if s_images is not None:
         if len(s_images) != 0:
@@ -116,15 +116,15 @@ if c_image and choose is not None:
             st.image(image, use_column_width=True)
 
             
-#if s_images is None:
-#    if c_image is None:
-        #if t_image is not None:
-        #    st.write('Нажмите, чтобы обучить модель новому стилю')
-        #    t_btn = st.button("Обучить модель")
-        #    if t_btn:
-        #        ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
-        #                  log_interval, style_size, t_image)
-        #        st.success('Модель успешно обучена')
+if s_images is None:
+    if c_image is None:
+        if t_image is not None:
+            st.write('Нажмите, чтобы обучить модель новому стилю')
+            t_btn = st.button("Обучить модель")
+            if t_btn:
+                ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
+                          log_interval, style_size, t_image)
+                st.success('Модель успешно обучена')
 
 
 if s_images and c_image is not None:
