@@ -116,16 +116,16 @@ if c_image and choose is not None:
 
 if s_images is None:
     if c_image is None:
-        if t_image is not None:
-            st.write('Нажмите, чтобы обучить модель новому стилю')
-            t_btn = st.button("Обучить модель")
-            if t_btn:
-                ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
-                          log_interval, style_size, t_image)
-                st.success('Модель успешно обучена')
+        #if t_image is not None:
+        #    st.write('Нажмите, чтобы обучить модель новому стилю')
+        #    t_btn = st.button("Обучить модель")
+        #    if t_btn:
+        #        ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
+        #                  log_interval, style_size, t_image)
+        #        st.success('Модель успешно обучена')
 
 
-if s_images and c_image is not None and t_image is None:
+if s_images and c_image is not None: #and t_image is None:
     iters = st.number_input('Количество итераций:', value=10)
     s_scl = st.number_input('Масштаб стиля', value=1.0)
 
