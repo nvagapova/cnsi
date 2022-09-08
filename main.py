@@ -125,7 +125,8 @@ if s_images is None:
         #        st.success('Модель успешно обучена')
 
 
-if s_images and c_image is not None: #and t_image is None:
+if s_images and c_image is not None: 
+            #and t_image is None:
     iters = st.number_input('Количество итераций:', value=10)
     s_scl = st.number_input('Масштаб стиля', value=1.0)
 
