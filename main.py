@@ -33,8 +33,8 @@ def st_share(share_html):
 
 
 with st.sidebar:
-    #st.title('Обучить модель')
-    #t_image = st.file_uploader("Загрузите стиль для обучения", type=["png", "jpg", "jpeg"])
+    st.title('Обучить модель')
+    t_image = st.file_uploader("Загрузите стиль для обучения", type=["png", "jpg", "jpeg"])
     st.title('Исходное изображение')
 
     c_option = st.selectbox('Загрузите изображение или сделайте фото', ('Upload_image', 'Take_a_photo'))
@@ -66,12 +66,12 @@ with st.sidebar:
                                           accept_multiple_files=True)
         if upload_s_image:
             s_images = upload_s_image
-    #elif s_option == 'Choose_model':
-    #    choose_model = st.selectbox("Выберите модель",
-    #                                ('BWScream',
-    #                                 'Pixel_Waterfall'))
-    #    if choose_model:
-    #        choose = choose_model
+    elif s_option == 'Choose_model':
+        choose_model = st.selectbox("Выберите модель",
+                                    ('BWScream',
+                                     'Pixel_Waterfall'))
+        if choose_model:
+            choose = choose_model
 
     if s_images is not None:
         if len(s_images) != 0:
@@ -98,37 +98,36 @@ with st.sidebar:
                     f.write(s_image.getbuffer())
 
 
-#if c_image and choose is not None:
-#    st.write('Нажмите, чтобы применить обученный стиль к исходному изображению')
-#    m_btn = st.button("Применить модель")
-#    model = os.path.join('models', choose + '.model')
+if c_image and choose is not None:
+    st.write('Нажмите, чтобы применить обученный стиль к исходному изображению')
+    m_btn = st.button("Применить модель")
+    model = os.path.join('models', choose + '.model')
 
-#    if m_btn:
-#        ych.stylize(c_img, model, out_img)
-#        col1, col2 = st.columns(2)
-#        with col1:
-#            st.write("Исходное изображение:")
-#            image = Image.open(c_img)
-#            st.image(image, use_column_width=True)
-#        with col2:
-#            st.write("Стилизованное изображение:")
-#            image = Image.open(out_img)
-#            st.image(image, use_column_width=True)
+    if m_btn:
+        ych.stylize(c_img, model, out_img)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("Исходное изображение:")
+            image = Image.open(c_img)
+            st.image(image, use_column_width=True)
+        with col2:
+            st.write("Стилизованное изображение:")
+            image = Image.open(out_img)
+            st.image(image, use_column_width=True)
 
             
-#if s_images is None:
-#    if c_image is None:
-#        if t_image is not None:
-#            st.write('Нажмите, чтобы обучить модель новому стилю')
-#            t_btn = st.button("Обучить модель")
-#            if t_btn:
-#                ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
-#                          log_interval, style_size, t_image)
-#                st.success('Модель успешно обучена')
+if s_images is None:
+    if c_image is None:
+        if t_image is not None:
+            st.write('Нажмите, чтобы обучить модель новому стилю')
+            t_btn = st.button("Обучить модель")
+            if t_btn:
+                ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
+                          log_interval, style_size, t_image)
+                st.success('Модель успешно обучена')
 
 
-if s_images and c_image is not None:
-            #and t_image is None:
+if s_images and c_image is not None and t_image is None:
     iters = st.number_input('Количество итераций:', value=10)
     s_scl = st.number_input('Масштаб стиля', value=1.0)
 
