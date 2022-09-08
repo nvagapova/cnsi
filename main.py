@@ -66,12 +66,12 @@ with st.sidebar:
                                           accept_multiple_files=True)
         if upload_s_image:
             s_images = upload_s_image
-    elif s_option == 'Choose_model':
-        choose_model = st.selectbox("Выберите модель",
-                                    ('BWScream',
-                                     'Pixel_Waterfall'))
-        if choose_model:
-            choose = choose_model
+    #elif s_option == 'Choose_model':
+    #    choose_model = st.selectbox("Выберите модель",
+    #                                ('BWScream',
+    #                                 'Pixel_Waterfall'))
+    #    if choose_model:
+    #        choose = choose_model
 
     if s_images is not None:
         if len(s_images) != 0:
