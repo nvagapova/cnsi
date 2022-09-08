@@ -59,7 +59,7 @@ with st.sidebar:
         st.image(image, width=300)
 
     st.title('Стиль')
-    s_option = st.selectbox('Загрузите свои стили или выберите готовый', ('Upload_styles', 'Choose_model'))
+    s_option = st.selectbox('Загрузите один или несколько стилей', ('Upload_styles'))#, 'Choose_model'))
     if s_option == 'Upload_styles':
         upload_s_image = st.file_uploader("Загрузите стилевые изображения", type=["png", "jpg", "jpeg"],
                                           accept_multiple_files=True)
