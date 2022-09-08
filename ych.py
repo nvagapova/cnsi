@@ -249,9 +249,7 @@ class ImagesDataset(torch.utils.data.Dataset):
 # !g1.1
 def train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
           log_interval, style_size, t_image):
-    #st.success("начало")
     device = torch.device("cpu")
-    #st.success("спу")
 
     transform = transforms.Compose([
         transforms.Resize(image_size),
@@ -259,16 +257,12 @@ def train(image_size, epochs, batch_size, dataset, save_model_dir, content_weigh
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.mul(255))
     ])
-    #st.success("композе")
     train_dataset = ImagesDataset(dataset, transform)
-    #st.success("датасет")
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
-    #st.success("даталоадер")
 
     transformer = TransformerNet().to(device)
     optimizer = Adam(transformer.parameters(), lr)
     mse_loss = torch.nn.MSELoss()
-    #st.success("мсилос")
 
     vgg = Vgg16().to(device)
     style_transform = transforms.Compose([
@@ -278,14 +272,11 @@ def train(image_size, epochs, batch_size, dataset, save_model_dir, content_weigh
     style = load_image(t_image, size=style_size)
     style = style_transform(style)
     style = style.repeat(batch_size, 1, 1, 1).to(device)
-    #st.success("репеат")
 
     features_style = vgg(normalize_batch(style))
     gram_style = [gram_matrix(y) for y in features_style]
-    #st.success("грамстайл")
 
     for e in range(epochs):
-        #st.success("начались эпохи")
         transformer.train()
         agg_content_loss = 0.
         agg_style_loss = 0.
@@ -306,7 +297,6 @@ def train(image_size, epochs, batch_size, dataset, save_model_dir, content_weigh
             features_x = vgg(x)
 
             content_loss = content_weight * mse_loss(features_y.relu2_2, features_x.relu2_2)
-            #st.success("контент лосс")
 
             style_loss = 0.
             for ft_y, gm_s in zip(features_y, gram_style):
@@ -317,28 +307,21 @@ def train(image_size, epochs, batch_size, dataset, save_model_dir, content_weigh
             total_loss = content_loss + style_loss
             total_loss.backward()
             optimizer.step()
-            #st.success("оптимайзерстеп")
 
             agg_content_loss += content_loss.item()
             agg_style_loss += style_loss.item()
-            #st.success("стайллосс")
 
             if (batch_id + 1) % log_interval == 0:
-                #st.success("логинтервал 0")
                 mesg = "{}\tИтерация {}:\t[{}/{}]\tПотеря контента: {:.6f}\tПотеря стиля: {:.6f}\t" \
                        "Общая потеря: {:.6f}".format(
                         time.ctime(), e + 1, count, len(train_dataset), agg_content_loss / (batch_id + 1),
                         agg_style_loss / (batch_id + 1), (agg_content_loss + agg_style_loss) / (batch_id + 1)
                         )
-                #st.success("месг")
                 print(mesg)
-                #st.success("принт месг")
                 mesg = "Итерация {}:\t[{}/{}]".format(
                     e + 1, count, len(train_dataset)
                 )
-                #st.success("месгравно")
                 logslot.write(mesg)
-                #st.success("логслотмесг")
 
     # save model
     transformer.eval().cpu()
