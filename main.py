@@ -68,7 +68,11 @@ with st.sidebar:
     elif s_option == 'Choose_model':
         choose_model = st.selectbox("Выберите модель",
                                     ('BWScream',
+<<<<<<< HEAD
                                      'Pixel_Waterfall', 'Shtrih', 'SWB'))
+=======
+                                     'Pixel_Waterfall'))
+>>>>>>> parent of c74ebc3 (Update main.py)
         if choose_model:
             choose = choose_model
 
