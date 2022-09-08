@@ -124,7 +124,6 @@ if s_images is None:
         #                  log_interval, style_size, t_image)
         #        st.success('Модель успешно обучена')
 
-
 if s_images and c_image is not None: 
             #and t_image is None:
     iters = st.number_input('Количество итераций:', value=10)
