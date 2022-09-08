@@ -122,6 +122,7 @@ if s_images is None:
             st.write('Нажмите, чтобы обучить модель новому стилю')
             t_btn = st.button("Обучить модель")
             if t_btn:
+                st.success("t_btn clicked!")
                 ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
                           log_interval, style_size, t_image)
                 st.success('Модель успешно обучена')
