@@ -98,33 +98,33 @@ with st.sidebar:
                     f.write(s_image.getbuffer())
 
 
-if c_image and choose is not None:
-    st.write('Нажмите, чтобы применить обученный стиль к исходному изображению')
-    m_btn = st.button("Применить модель")
-    model = os.path.join('models', choose + '.model')
+#if c_image and choose is not None:
+#    st.write('Нажмите, чтобы применить обученный стиль к исходному изображению')
+#    m_btn = st.button("Применить модель")
+#    model = os.path.join('models', choose + '.model')
 
-    if m_btn:
-        ych.stylize(c_img, model, out_img)
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("Исходное изображение:")
-            image = Image.open(c_img)
-            st.image(image, use_column_width=True)
-        with col2:
-            st.write("Стилизованное изображение:")
-            image = Image.open(out_img)
-            st.image(image, use_column_width=True)
+#    if m_btn:
+#        ych.stylize(c_img, model, out_img)
+#        col1, col2 = st.columns(2)
+#        with col1:
+#            st.write("Исходное изображение:")
+#            image = Image.open(c_img)
+#            st.image(image, use_column_width=True)
+#        with col2:
+#            st.write("Стилизованное изображение:")
+#            image = Image.open(out_img)
+#            st.image(image, use_column_width=True)
 
             
-if s_images is None:
-    if c_image is None:
-        if t_image is not None:
-            st.write('Нажмите, чтобы обучить модель новому стилю')
-            t_btn = st.button("Обучить модель")
-            if t_btn:
-                ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
-                          log_interval, style_size, t_image)
-                st.success('Модель успешно обучена')
+#if s_images is None:
+#    if c_image is None:
+#        if t_image is not None:
+#            st.write('Нажмите, чтобы обучить модель новому стилю')
+#            t_btn = st.button("Обучить модель")
+#            if t_btn:
+#                ych.train(image_size, epochs, batch_size, dataset, save_model_dir, content_weight, style_weight, lr,
+#                          log_interval, style_size, t_image)
+#                st.success('Модель успешно обучена')
 
 
 if s_images and c_image is not None:
