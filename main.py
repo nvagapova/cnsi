@@ -114,8 +114,9 @@ if c_image and choose is not None:
             image = Image.open(out_img)
             st.image(image, use_column_width=True)
 
-if s_images is None:
-    if c_image is None:
+            
+#if s_images is None:
+#    if c_image is None:
         #if t_image is not None:
         #    st.write('Нажмите, чтобы обучить модель новому стилю')
         #    t_btn = st.button("Обучить модель")
@@ -124,7 +125,8 @@ if s_images is None:
         #                  log_interval, style_size, t_image)
         #        st.success('Модель успешно обучена')
 
-if s_images and c_image is not None: 
+
+if s_images and c_image is not None:
             #and t_image is None:
     iters = st.number_input('Количество итераций:', value=10)
     s_scl = st.number_input('Масштаб стиля', value=1.0)
