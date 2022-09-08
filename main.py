@@ -33,8 +33,8 @@ def st_share(share_html):
 
 
 with st.sidebar:
-    st.title('Обучить модель')
-    t_image = st.file_uploader("Загрузите стиль для обучения", type=["png", "jpg", "jpeg"])
+    #st.title('Обучить модель')
+    #t_image = st.file_uploader("Загрузите стиль для обучения", type=["png", "jpg", "jpeg"])
     st.title('Исходное изображение')
 
     c_option = st.selectbox('Загрузите изображение или сделайте фото', ('Upload_image', 'Take_a_photo'))
@@ -65,12 +65,12 @@ with st.sidebar:
                                           accept_multiple_files=True)
         if upload_s_image:
             s_images = upload_s_image
-    elif s_option == 'Choose_model':
-        choose_model = st.selectbox("Выберите модель",
-                                    ('BWScream',
-                                     'Pixel_Waterfall'))
-        if choose_model:
-            choose = choose_model
+    #elif s_option == 'Choose_model':
+    #    choose_model = st.selectbox("Выберите модель",
+    #                                ('BWScream',
+    #                                 'Pixel_Waterfall'))
+    #    if choose_model:
+    #        choose = choose_model
 
     if s_images is not None:
         if len(s_images) != 0:
